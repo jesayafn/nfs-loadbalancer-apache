@@ -60,7 +60,7 @@ services:
                environment:
                        - SHARED_DIRECTORY=/share
                volumes:
-                       - /home/jesaya/volume:/share
+                       - ./volume:/share
 volumes:
        assets:
                driver_opts:
