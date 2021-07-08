@@ -1,0 +1,70 @@
+version: '3.8'
+networks:
+        webapp:
+                driver: bridge
+                ipam:
+                        config:
+                                - subnet: 172.20.0.0/24
+                                  gateway: 172.20.0.1
+services: 
+       web-server1:
+                build: ./httpd
+                container_name: server1
+                networks:
+                        webapp:
+                                ipv4_address: 172.20.0.2
+                volumes:
+                        - ./machine1/:/usr/local/apache2/htdocs/
+                        - assets:/usr/local/apache2/assets
+       web-server2:
+                build: ./httpd
+                container_name: server2
+                networks:
+                        webapp:
+                                ipv4_address: 172.20.0.3
+                volumes:
+                        - ./machine2/:/usr/local/apache2/htdocs/
+                        - assets:/usr/local/apache2/assets
+       web-server3:
+                build: ./httpd
+                container_name: server3
+                networks:
+                        webapp:
+                                ipv4_address: 172.20.0.4
+                volumes:
+                        - ./machine3/:/usr/local/apache2/htdocs/
+                        - assets:/usr/local/apache2/assets
+       load-balancer-nginx:
+               build: ./nginx
+               container_name: load_balancer_nginx
+               networks:
+                        webapp:
+                                ipv4_address: 172.20.0.10
+               ports:
+                     - 80:80
+       load-balancer-haproxy:
+               build: ./haproxy
+               container_name: load_balancer_haproxy
+               networks:
+                        webapp:
+                                ipv4_address: 172.20.0.20
+               ports:
+                     - 8080:80
+       nfs-server:
+               image: itsthenetwork/nfs-server-alpine:latest
+               container_name: nfs_server
+               networks:
+                        webapp:
+                                ipv4_address: 172.20.0.50
+               privileged: true
+               environment:
+                       - SHARED_DIRECTORY=/share
+               volumes:
+                       - /home/jesaya/volume:/share
+volumes:
+       assets:
+               driver_opts:
+                        type: "nfs"
+                        o: "addr=172.20.0.50,nfsvers=4,nolock,soft,rw"
+                        device: ":/assets"
+
